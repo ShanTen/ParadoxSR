@@ -1,0 +1,64 @@
+---------------------------------To Do---------------------------------
+
+[[]] 1. Glue Together CheckIN Logic for all Both Event and Central Attendance
+[[]] 2. Intermediate Screen for Event Attendance
+[[]] 3. Put end point for email back up option
+[[]] 4. Add "ask perms" for camera
+[[]] 5. Add all media before build
+
+---------------------------------Notes---------------------------------
+
+1. Login 
+2. Attendance Page => 2 Centered Options (Gate CheckIN and Event Attendance)
+3. On Gate CheckIN 
+    --> Scanner 
+    --> Success Toast 
+    --> Redirect HOME
+
+4. On Event Attendance 
+    --> **Vertically Centered Buttons Asking Which Event (Conditionally rendered based off event timings) 
+    --> Scanner 
+    --> Success Toast 
+    --> Redirect
+
+** - This page is called "EventSelect"
+
+ToDo:
+    1. Login Screen
+    2. QR Scanner Screen
+
+Things to Cache
+    1. Volunteer Details
+    2. Token
+
+Screens
+    1. Login
+    2. QR Scanner (Gets object passed to it from previous page that tells it what to do - Either Check In or Event Attendance)
+    3. Home (Check In Button and Event Attendance button) [Tabs]
+    4. Event Attendance Selector (List of Events) 
+    5. Volunteer Profile Page (Name, Email, Profile Picture) + List of Events [Tabs]
+    6. Event Details Page [Tabs]
+    (has a drop down to pick event and a conditionally rendered list of students + phone numbers)
+
+Put the base header (bearer token thingy inside apiRoute.js)
+
+{
+    "id": 4070,
+    "name": " ",
+    "email": "dummy@fake.com",
+    "isDoingCentralCheckIn": false,
+    "events": [
+        {
+            "id": 51,
+            "name": "Python Coding Challenge 3.0"
+        },
+        {
+            "id": 35,
+            "name": "What’s In A Meme?"
+        },
+        {
+            "id": 24,
+            "name": "Becoming Billionaire: Monetizing your ideas"
+        }
+    ]
+}
