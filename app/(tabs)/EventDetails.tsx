@@ -101,7 +101,7 @@ export default function EventDetails(){
                 <LateStudentButton
                 id='1'
                 name='Swag Mans'
-                phoneNumber={8637643053}
+                phoneNumber={1234567890}
                 />
             </ScrollView>
 
