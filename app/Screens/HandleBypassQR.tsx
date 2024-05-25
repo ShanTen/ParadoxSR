@@ -4,7 +4,7 @@
     the student's roll number instead of scanning the QR 
 */
 
-import { StyleSheet , TextInput } from 'react-native';
+import { StyleSheet , TextInput, Alert } from 'react-native';
 import { Text, View } from '@/components/Themed';
 import { useState, useEffect } from 'react';
 import axios from 'axios';
@@ -13,29 +13,66 @@ import { getValueFor } from '../../ExpoStoreUtils';
 import { ButtonAnimatedWithLabel } from '../CommonComponents/ButtonAnimated';
 
 export default function ScreenBypassQR({ route, navigation }: { route: any, navigation: any }){
-    //Words cannot describe how  much this code wants to make me gouge my eyes out 
     const [email, setEmail] = useState<string | undefined>(undefined);
     const [token, setToken] = useState<string | undefined>(undefined);
+    const [routeObj, setRouteObj] = useState<any | undefined>(undefined);
 
-    const handleRollNumberSubmit = async () => {
-        console.log(`Roll Number ${email}`)
-        // make API call to validate roll number here
-        // Validation of QR is another pain, handle it later today 
-        // if valid, navigate to HandleSupplies screen and set the parameter to value returned (QRid) 
-        // navigation.navigate('HandleSupplies', { rollNumber });
+    const handleEmailSubmitCentralCheckIn = async () => {
+        const headers = {Authorization: `Bearer ${token}`};
         try{
-            let QRid = (await (axios.get(`${apiRoute}/accommodation/student/${email}/`, {headers: {Authorization: `Bearer ${token}`}}))).data;
-            navigation.navigate('HandleSupplies', { QRid : QRid.code });
+            let QRid = (await (axios.get(`${apiRoute}/sr/student/${email}/`, {headers}))).data.code;
+            const res = (await axios.post(`${apiRoute}/sr/student/fest/checkin/${QRid}/`, {}, {headers})).data;
+            Alert.alert("Success", "Fest check-in done", [{text: "OK", onPress: () => {navigation.goBack()}}])
         }
-        catch(err){
-            console.log(err);
-            alert("Email invalid, please check and try again.");
+        catch(err : any){
+            console.log(err.response.data);
+            console.log("Error while performing central check in")
+            let _msg = err.response.data.message || "Invalid Email ID"
+            Alert.alert("Error", _msg, [{text: "OK", onPress: () => {navigation.goBack()}}])
             return;
         }
     }
 
-    useEffect(() => {
+    const handleEventAttendance = async () => {
+        const headers = {Authorization: `Bearer ${token}`};
+        try{
+            let QRid = (await (axios.get(`${apiRoute}/sr/student/${email}/`, {headers}))).data.code;
+            const res = (await axios.post(`${apiRoute}/sr/student/event/checkin/${route.params.event.id}/${QRid}/`, {}, {headers})).data;
+            Alert.alert("Success", "Event Attendance Marked", [{text: "OK", onPress: () => {navigation.goBack()}}])
+        }
+        catch(err : any){
+            console.log(err.response.data);
+            console.log("Error while marking event attendance")
+            let _msg = err.response.data.message || "Invalid Email ID"
+            Alert.alert("Error", _msg, [{text: "OK", onPress: () => {navigation.goBack()}}])
+            return;
+        }
+    }
 
+    const handleButtonPress = async () => {
+        if(!routeObj)
+            return;
+        try{
+            if(routeObj.purpose === "centralCheckIN"){
+                await handleEmailSubmitCentralCheckIn();
+            }
+            else if(routeObj.purpose === "eventAttendance"){
+                await handleEventAttendance();
+            }
+            else{
+                console.log("Invalid purpose")
+            }
+        }
+
+        catch(err){
+            console.log("Error while performing action")
+            console.log(err);
+        }
+
+    }
+
+    useEffect(() => {
+        setRouteObj(route.params);
         getValueFor('token').then((_token) => {
             setToken(_token);
         }).catch((err) => {
@@ -54,12 +91,16 @@ export default function ScreenBypassQR({ route, navigation }: { route: any, navi
             placeholder="Ex: 20f3000001@ds.study.iitm.ac.in"
             placeholderTextColor="grey"
         />
+        {
+        (routeObj) 
+            && 
         <ButtonAnimatedWithLabel
-            onPress={handleRollNumberSubmit}
+            onPress={handleButtonPress}
             label="Submit"
             style={styles.button}
             animatedViewStyle={{ backgroundColor: 'green' }}
         />
+        }
     </View>
 }
 

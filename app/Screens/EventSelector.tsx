@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { ButtonAnimatedWithLabel } from '../CommonComponents/ButtonAnimated';
 import Title from "@/app/CommonComponents/PageTitle";
 import { save, getValueFor } from '@/ExpoStoreUtils';
+import { ScrollView } from 'react-native';
 
 export default function EventSelector({navigation} : { navigation: any}){
     const [token, setToken] = useState(''); 
@@ -16,7 +17,13 @@ export default function EventSelector({navigation} : { navigation: any}){
             let _profileJSON = await getValueFor('profile');
             let _profile = JSON.parse(_profileJSON);
             let _events = _profile.events;
-        
+
+            // let _events2 = [];
+            // for(let i = 0; i < 100; i++){
+            //     _events2.push({ id: i, name: `Name - ${i}` });
+            // }
+            // console.log(_events);
+
             setProfile(_profile);
             setToken(_token);
             setEvents(_events);
@@ -45,9 +52,16 @@ export default function EventSelector({navigation} : { navigation: any}){
     }
 
     return <View style={styles.container}>
-        <Title value="Events"/>
+        <Title 
+            value="Events" 
+            LineStyle={{
+                marginBottom: 10
+            }}
+        />
 
+        <ScrollView style={styles.scrollView}>
         {
+            
             events && events.map((event : any, index : number) => {
                 return <ButtonAnimatedWithLabel
                     key={index}
@@ -55,7 +69,7 @@ export default function EventSelector({navigation} : { navigation: any}){
                     onPress={(id: any) => {
                         console.log(`Event id is ${id}`);
                         // save('currentEvent', JSON.stringify(event));
-                        // navigation.navigate('QRScanner');
+                        navigation.navigate('QRScanner', {"event": event, "purpose": "eventAttendance"});
                     }}
                     label={event.name}
                     style={
@@ -70,6 +84,7 @@ export default function EventSelector({navigation} : { navigation: any}){
                 />
             })
         }
+        </ScrollView>
 
         {/* <ButtonAnimatedWithLabel
             onPress={() => navigation.navigate('QRScanner')}
@@ -85,5 +100,9 @@ const styles = StyleSheet.create({
     container:{
         flex: 1,
         alignItems: 'center',    
+    },
+    scrollView:{
+        flex: 1,
+        width: '100%',
     }
 })

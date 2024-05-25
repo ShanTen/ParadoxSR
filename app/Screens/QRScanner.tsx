@@ -19,6 +19,7 @@ import React, { useEffect } from 'react';
 import { StatusBar, StyleSheet, Text, View, Alert } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect } from 'expo-router';
+import { useIsFocused } from '@react-navigation/native';
 
 import apiRoute from '../../apiRoute';
 import { getValueFor } from '../../ExpoStoreUtils';
@@ -47,74 +48,123 @@ function Hint({ children }: { children: string }) {
   );
 }
 
+const isLikeQR = (id: string) => {
+  const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  return uuidPattern.test(id);
+}
+
+
 ///////////////////////////////////////////////////////////////////////////////
 //////////////////////// Main Export Method ///////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
 
-export default function BarCodeScreen({ navigation }: { navigation: any }) {
+export default function BarCodeScreen({ route, navigation }: { route: any, navigation: any }) {
   const [isVisible , setIsVisible] = React.useState(false)
+  const [permission , setPermission] = React.useState(false)
   const [QRid , setQRid] = React.useState<string | null>(null)
-  const [mountKey, setMountKey] = React.useState(0); //camera hack to force remount
+  const [mountKey, setMountKey] = React.useState(1); //camera hack to force remount
   const [isLit, setLit] = React.useState(false);
+  const isFocused = useIsFocused();
+
+  const permissionFunction = async () => {
+    const cameraPermission = await Camera.requestCameraPermissionsAsync();
+    setIsVisible(cameraPermission.status === 'granted');
+    setPermission(cameraPermission.status === 'granted');
+    if (cameraPermission.status !== 'granted')
+      alert('Permission for camera access needed.');
+  };
+
   // set camera permissions
   useEffect(() => {
-    (async () => {
-      const { status } = await BarCodeScanner.requestPermissionsAsync();
-      if (status === 'granted') {
-        setIsVisible(true);
-      }
-    })();
+    permissionFunction();
   }, []);
 
   //Subsequent focus renders
   useFocusEffect(React.useCallback(() => {
-    setMountKey(mountKey + 1);
+    console.log("params are")
+    console.log(route.params)
   }, []));
+
+  const markGateAttendance = (QRid: string, token: string) => {
+
+    const url = `${apiRoute}/sr/student/fest/checkin/${QRid}/`;
+
+    let headers = {
+      Authorization: `Bearer ${token}`
+    }
+
+    axios.post(url, {}, {headers: headers}).then((response)=>{
+      console.log("Gate Attendance Marked")
+      Alert.alert("Success", "Fest check-in done", [{text: "OK", onPress: () => {navigation.goBack()}}])
+    }).catch((error) => {
+      console.log("Error while marking gate check in")
+      let _msg = error.response.data.message
+      Alert.alert("Error", _msg, [{text: "OK", onPress: () => {navigation.goBack()}}])
+    })
+
+  };
+
+  const markEventAttendance = (QRid: string, eventID: number, token: string) => {
+
+    const url = `${apiRoute}/sr/student/event/checkin/${eventID}/${QRid}/`;
+                          
+    let headers = {
+      Authorization: `Bearer ${token}`
+    }
+
+    axios.post(url, {}, {headers: headers}).then((response)=>{
+      console.log("Event Attendance Marked")
+      Alert.alert("Success", "Event Attendance Marked", [{text: "OK", onPress: () => {navigation.goBack()}}])
+    }).catch((error) => {
+      console.log("Error while marking event attendance")
+      let _msg = error.response.data.message
+      Alert.alert("Error", _msg, [{text: "OK", onPress: () => {navigation.goBack()}}])
+    })
+
+  };
 
   React.useEffect(() => {
     if (!isVisible && QRid) {
-      console.log("QR Code Scanned")
-      console.log(QRid)
       //sending to server 
-      // getValueFor('token').then((token) => {
 
-      //   let headers ={
-      //     Authorization : `Bearer ${token}`
-      //   }
+      getValueFor('token').then((token) => {
 
-      //   axios.get(`${apiRoute}/accommodation/qr/${QRid}`, {headers})
-      //     .then(
-      //       response => {
-      //         navigation.navigate('HandleSupplies', { QRid });
-      //       }
-      //     )
-      //     .catch((err) => {
-      //       console.log("An error occurred while sending QRid to server")
-      //       console.log(err)
-      //       const isLikeQR = (id: string) => {
-      //         const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-      //         return uuidPattern.test(id);
-      //       }
+        console.log(`Token retrieved from store is [${token}]`) 
 
-      //       if(!isLikeQR(QRid)){
-      //         Alert.alert("Invalid QR code", "Please scan a valid QR code")
-      //         return;
-      //       }
+        if(route.params.purpose === "eventAttendance")
+          {
+            console.log("Running eventAttendance")
+            console.log(`QRid: ${QRid}`)
+            console.log(`EventID: ${route.params.event.id}`)
+            markEventAttendance(QRid, route.params.event.id, token);
+          }
+        else if(route.params.purpose === "centralCheckIN")
+          markGateAttendance(QRid, token);
+        else //this should never happen
+          {
+            console.log(`Invalid purpose: ${route.params.purpose}`)
+            throw new Error("Invalid purpose :: How did this happen???")
+          }
 
-      //       Alert.alert("Error", "An error occurred while sending QRid to server. Please try again.")    
-      //     })
-      // })      
+
+      })      
     }
   }, [isVisible, QRid]);
 
-  // InstanceOf : [state]
-  const _handleBarCodeScanned = throttle(({ data: _url }) => {
-    console.log("Scanned URL: ", _url)
-    setQRid(_url);
-    setIsVisible(false);
+  const _handleBarCodeScanned = throttle(({ data: id }) => {
+    
+    if (id) {
+      console.log("Scanned QR")
+      console.log(id)
+
+      setQRid(id);
+      setIsVisible(false);
+    }
+
+    
+    
   }, 1000);
 
-  // InstanceOf : [props.navigation]
   const onRefresh = React.useCallback(() => {
     console.log("Action Cancelled")
     //clear all states
@@ -130,18 +180,17 @@ export default function BarCodeScreen({ navigation }: { navigation: any }) {
 
   const onManualEntry = React.useCallback(() => {
     console.log("Bypassing QR...")
-    //NAV :: Move to Manual Entry Screen
-    navigation.navigate('HandleBypassQR');
-    //navigation.navigate('HandleSupplies');
+    navigation.navigate('HandleBypassQR', route.params);
   }, []);
 
   const { top, bottom } = useSafeAreaInsets();
 
   return (
     <View style={Styles.container}>
-      {/* // InstanceOf : [state] */}
-      {isVisible ? (
+      
+      {(isVisible && isFocused) ? (
         <Camera
+          ratio="16:9"
           key={mountKey}
           barCodeScannerSettings={{
             barCodeTypes: [BarCodeScanner.Constants.BarCodeType.qr],
@@ -155,18 +204,21 @@ export default function BarCodeScreen({ navigation }: { navigation: any }) {
       <View style={[Styles.header, { top: 40 + top }]}>
         <Hint>Hit refresh button if camera doesn't load</Hint>
       </View>
+
       <QRIndicator />
+
       {/* <CurrentPayloadDisplay payload={url}/> */}
+
       <View style={[Styles.footer, { bottom: 30 + bottom }]}>
         <QRFooterButton onPress={onFlashToggle} isActive={isLit} iconName="flashlight" />
         <QRFooterButton onPress={onManualEntry} iconName="create-outline" />
         <QRFooterButton onPress={onRefresh} iconName="refresh-outline" iconSize={48} />
       </View>
       <StatusBar barStyle="light-content" backgroundColor="#000" />
+
     </View>
   );
 }
-
 
 ///////////////////////////////////////////////////////////////////////////////
 ///////////////////////////// Stylesheet  /////////////////////////////////////

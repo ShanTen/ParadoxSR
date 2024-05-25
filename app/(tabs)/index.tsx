@@ -69,10 +69,28 @@ function TabOneScreen({navigation}:{navigation: any}) {
         {/* Both Buttons redirect to QR code but they pass a key called "purpose" to the QR page */}
         {/* "purpose can be either "eventAttendance" or "centralCheckIN", the key is deleted after event is handled in QR */}
 
-        {(profile) && (profile.isDoingCentralCheckIn) && <ButtonAnimatedWithLabel label='Gate Check In' onPress={() => console.log("Pressed")} animatedViewStyle={{}} style={{}}/>}
+        {
+          (profile) && (profile.isDoingCentralCheckIn) 
+            && 
+          <ButtonAnimatedWithLabel 
+            label='Fest Check-In' 
+            onPress={() => navigation.navigate('QRScanner', {"purpose": "centralCheckIN"})} 
+            animatedViewStyle={{}} 
+            style={{}}
+          />
+        }
 
-        <ButtonAnimatedWithLabel label='Event Attendance' onPress={() => {navigation.navigate("EventSelector")}}  animatedViewStyle={{}} style={{}}/>
-        {/* () => navigation.navigate("QRScanner", { purpose: "pass the butter" }) */}
+        {
+          (profile) && (profile.events.length > 0)
+            && 
+          <ButtonAnimatedWithLabel 
+            label='Event Attendance' 
+            onPress={() => {navigation.navigate("EventSelector")}}  
+            animatedViewStyle={{}} 
+            style={{}}
+          />
+        }
+        
       </View>
 
     </View>
