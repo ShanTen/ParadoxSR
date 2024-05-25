@@ -58,7 +58,7 @@ export default function RootLayout() {
 
 function RootLayoutNav() {
   const colorScheme = useColorScheme();
-
+  
   return (
     <ThemeProvider value={DarkTheme}>
       <Stack> 

@@ -28,7 +28,15 @@ export default function TabLayout() {
     <Tabs
       screenOptions={{
         tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
-        headerShown: useClientOnlyValue(false, true),
+
+        // For the life of me I cant figure out why I have to do this here, but not it in the other app??? 
+        tabBarStyle: {
+          backgroundColor: "rgba(0, 0, 0, 1)", 
+          borderTopColor: "rgba(100, 100, 100, 0.3)",
+          borderTopWidth: 1,
+        },
+        
+        headerShown: useClientOnlyValue(true, false),
       }}>
       <Tabs.Screen
         name="index"
@@ -44,6 +52,7 @@ export default function TabLayout() {
           title: 'Event Details',
           tabBarIcon: ({ color }) => <TabBarIconMC name="calendar" color={color} />,
           headerShown: false,
+          href: null
         }}
       />
       <Tabs.Screen
