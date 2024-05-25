@@ -10,7 +10,7 @@
     "splash": {
       "image": "./assets/images/splash.png",
       "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
+      "backgroundColor": "#f4e0bc"
     },
     "ios": {
       "supportsTablet": true
@@ -45,6 +45,14 @@
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "router": {
+        "origin": false
+      },
+      "eas": {
+        "projectId": "c41f7984-1e14-470a-8bdb-c1c1b2aa76f7"
+      }
     }
   }
 }
