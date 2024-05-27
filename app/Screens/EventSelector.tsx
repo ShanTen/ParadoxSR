@@ -1,7 +1,7 @@
 import { StyleSheet , TextInput } from 'react-native';
 import { Text, View } from '@/components/Themed';
 import { useState, useEffect } from 'react';
-import { ButtonAnimatedWithLabel } from '../CommonComponents/ButtonAnimated';
+import { ButtonAnimatedWithLabel, ButtonAnimatedWithLabelForScrollView } from '../CommonComponents/ButtonAnimated';
 import Title from "@/app/CommonComponents/PageTitle";
 import { save, getValueFor } from '@/ExpoStoreUtils';
 import { ScrollView } from 'react-native';
@@ -51,6 +51,10 @@ export default function EventSelector({navigation} : { navigation: any}){
         // navigation.navigate('QRScanner');
     }
 
+    function DBGHandleOnPress(id : any){
+        console.log(`Event id is ${id}`);
+    }
+
     return <View style={styles.container}>
         <Title 
             value="Events" 
@@ -60,15 +64,33 @@ export default function EventSelector({navigation} : { navigation: any}){
         />
 
         <ScrollView style={styles.scrollView}>
+        {/* {
+            Array.from(Array(100).keys()).map((event : any, index: number) => {
+                return <ButtonAnimatedWithLabelForScrollView
+                    key={index}
+                    value={index}
+                    onPress={DBGHandleOnPress}
+                    label={`${index}`}
+                    style={
+                        {
+                            Text: {
+                                color: 'white',
+                                textAlign: 'center',
+                            },
+                        }
+                    }
+                    animatedViewStyle={{ backgroundColor: 'green'}}
+                />
+            }) 
+        } */}
+
         {
             
             events && events.map((event : any, index : number) => {
-                return <ButtonAnimatedWithLabel
+                return <ButtonAnimatedWithLabelForScrollView
                     key={index}
                     value={event.id}
                     onPress={(id: any) => {
-                        console.log(`Event id is ${id}`);
-                        // save('currentEvent', JSON.stringify(event));
                         navigation.navigate('QRScanner', {"event": event, "purpose": "eventAttendance"});
                     }}
                     label={event.name}

@@ -1,4 +1,4 @@
-import { StyleSheet, Pressable, Animated } from 'react-native';
+import { StyleSheet, Pressable, Animated, Vibration } from 'react-native';
 import { Text, View } from '@/components/Themed';
 import {useState} from 'react';
 
@@ -97,6 +97,74 @@ export function ButtonAnimatedWithLabel({ label, onPress, style, animatedViewSty
         value={value}
         />
     )
+}
+
+export function ButtonAnimatedWithChildForScrollView({ child, onPress, style, animatedViewStyle, isDisabled, value} : ButtonAnimatedProps) {
+  const [opacity] = useState(new Animated.Value(1));
+  const [allowPress, setAllowPress] = useState(false);
+
+
+  const handlePressIn = () => {
+      Animated.timing(opacity, {
+        toValue: 0.5,
+        duration: 150,
+        useNativeDriver: true,
+      }).start();
+
+    };
+  
+    const handlePressOut = () => {
+      Animated.timing(opacity, {
+        toValue: 1,
+        duration: 150,
+        useNativeDriver: true,
+      }).start();
+
+      Vibration.vibrate(100);
+      onPress(value);
+    };
+
+    const handleLongPress = () => {
+      onPress(value);
+    }
+
+    return (<Pressable
+    onPressIn={handlePressIn}
+    unstable_pressDelay={500}
+    delayLongPress={1000}
+    onPressOut={handlePressOut}
+    style={{ ...styles.UpcomingPressable, ...style }}
+    disabled={isDisabled}
+  >
+  <Animated.View style={{ ...styles.Container, opacity, ...animatedViewStyle }}>
+      {child}
+  </Animated.View>
+  </Pressable>)
+}
+
+export function ButtonAnimatedWithLabelForScrollView({ label, onPress, style, animatedViewStyle, isDisabled, value} : ButtonLabelProps) {
+  
+    let styleDisabled = null;
+    if (isDisabled) {
+      styleDisabled = {
+        backgroundColor: getDisabledColor(
+          animatedViewStyle.backgroundColor || "#069A8E"
+        ),
+        color: getDisabledColor(animatedViewStyle.backgroundColor || "#069A8E"),
+      };
+    }
+  
+      return (
+          <ButtonAnimatedWithChildForScrollView
+          child={<Text style={styles.Text}>{label}</Text>}
+          onPress={onPress}
+          style={style}
+          animatedViewStyle={styleDisabled || animatedViewStyle}
+          isDisabled={isDisabled}
+          value={value}
+          />
+      )
+  
 }
 
 const styles = StyleSheet.create({
