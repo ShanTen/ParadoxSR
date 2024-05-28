@@ -5,6 +5,8 @@ import { ButtonAnimatedWithLabel, ButtonAnimatedWithLabelForScrollView } from '.
 import Title from "@/app/CommonComponents/PageTitle";
 import { save, getValueFor } from '@/ExpoStoreUtils';
 import { ScrollView } from 'react-native';
+import apiRoute from "@/apiRoute"
+import axios from 'axios';
 
 export default function EventSelector({navigation} : { navigation: any}){
     const [token, setToken] = useState(''); 
@@ -14,8 +16,11 @@ export default function EventSelector({navigation} : { navigation: any}){
     async function getData(){
         try{        
             let _token = await getValueFor('token');
-            let _profileJSON = await getValueFor('profile');
-            let _profile = JSON.parse(_profileJSON);
+            //let _profileJSON = await getValueFor('profile');
+
+            let _profile = (await axios.get(`${apiRoute}/sr/volunteer/profile/`, { headers: { Authorization: `Bearer ${_token}` } })).data
+            console.log(`Profile @ event selector`)
+            console.log(_profile)
             let _events = _profile.events;
 
             // let _events2 = [];

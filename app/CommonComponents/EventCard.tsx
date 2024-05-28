@@ -12,8 +12,8 @@ const EventCard = ({ eventName, eventStartTime, eventEndTime }: EventCardProps) 
     return (
         <View style={styles.eventCard}>
             <Text style={styles.eventCardTitle}>{eventName}</Text>
-            <Text style={styles.eventCardTime}>Starts at {eventStartTime}</Text>
-            <Text style={styles.eventCardTime}>Ends at {eventEndTime}</Text>
+            {eventStartTime && <Text style={styles.eventCardTime}>Starts at {eventStartTime}</Text>}
+            {eventEndTime && <Text style={styles.eventCardTime}>Ends at {eventEndTime}</Text>}
         </View>
     )
 }
@@ -22,7 +22,7 @@ const styles = StyleSheet.create({
     eventCard: {
         width: '95%',
         backgroundColor: '#1E1E1E',
-        padding: 10,
+        padding: 30,
         margin: 5,
         borderRadius: 10,
         alignContent: 'center',

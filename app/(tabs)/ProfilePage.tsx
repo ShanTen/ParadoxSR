@@ -50,6 +50,7 @@ const epochToHuman = function (epochTime: number) {
 // }
 
 const screenWidth = Dimensions.get('window').width;
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 export default function ProfilePage() {
   const [profile, setProfile] = useState<any>(null);
@@ -68,30 +69,20 @@ export default function ProfilePage() {
   useEffect(()=>{
     //get the profile from the cache
     if(token === null) return;
-    getValueFor('profile').then(async (profile: any) => {
-      let profileValue = JSON.parse(profile);
-      try{
-        let headers = { Authorization : `Bearer ${token}` }
-        let requiredEventsIDs = profileValue["events"].map((event: any) => event.id);
-        for(let _id of requiredEventsIDs){
-          let response = (await axios.get(`${apiRoute}/sr/events/${_id}/`, { headers })).data;
-          let volunteerEventObjectsCopy = volunteerEventObjects;
-          //check if object is not already in the array
-          if(volunteerEventObjectsCopy.filter((event: any) => event.id === response.id).length === 0){
-            volunteerEventObjectsCopy.push(response);
-            setVolunteerEventObjects(volunteerEventObjectsCopy);
-          }
-          setVolunteerEventObjects(volunteerEventObjectsCopy);
-        }
-        
-        setProfile(profileValue);
-      }
-      catch(err){
-        console.log(err)
-      }
-    }).catch(error => {
+
+    axios.get(`${apiRoute}/sr/volunteer/profile/`, { headers: { Authorization: `Bearer ${token}` } })
+      .then(async (_profile) => {
+      
+      setProfile(_profile.data);
+      let headers = { Authorization : `Bearer ${token}` }
+      setVolunteerEventObjects(_profile.data.events);
+      
+    })
+      .catch((error) => {
+      console.log("An error occurred while fetching profile.")
       console.log(error);
-    });
+    })
+
   }, [token])
   
   const logout = async () => {
@@ -110,7 +101,16 @@ export default function ProfilePage() {
     <View style={styles.container}>
       <Title value="Profile" LineStyle={{ marginBottom: 20 }} />
       {(profile) && <ProfileBar profileName={profile.name} profilePicture={getProfilePicture(profile.name)} uniqueID={getUniqueID(profile.email)} />}
-      <ScrollView style={{ marginTop: 10 }} contentContainerStyle={
+      <ButtonAnimatedWithLabel label='Logout' onPress={logout} animatedViewStyle={{ backgroundColor: '#9a0612' }} style={{}} />
+      <Text style={
+        { 
+          marginTop: 10, 
+          fontSize: 18, 
+          fontWeight: 'bold',
+        }
+      }
+      >Your Events</Text>
+      <ScrollView style={{ marginTop: 5 }} contentContainerStyle={
         {
           alignContent: 'center',
           justifyContent: 'center',
@@ -125,8 +125,8 @@ export default function ProfilePage() {
                   {
                     return <EventCard 
                       eventName={event.name} 
-                      eventStartTime={epochToHuman(event.starttime)} 
-                      eventEndTime={epochToHuman(event.endtime)} 
+                      eventStartTime={null} 
+                      eventEndTime={null} 
                       key={event.id}
                     />
                   }
@@ -138,12 +138,9 @@ export default function ProfilePage() {
         <ButtonAnimatedWithLabel label='Logout' onPress={logout} animatedViewStyle={{ backgroundColor: '#9a0612' }} style={{}}/>
       </View> */}
 
-          <ButtonAnimatedWithLabel label='Logout' onPress={logout} animatedViewStyle={{ backgroundColor: '#9a0612' }} style={{}} />
+          {/* <ButtonAnimatedWithLabel label='Logout' onPress={logout} animatedViewStyle={{ backgroundColor: '#9a0612' }} style={{}} /> */}
         
       </ScrollView>
-
-
-
     </View>
   );
 }

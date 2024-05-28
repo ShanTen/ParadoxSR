@@ -10,6 +10,12 @@ import { ButtonAnimatedWithChild } from '@/app/CommonComponents/ButtonAnimated';
 import { save, getValueFor } from '@/ExpoStoreUtils';
 import TextBox from 'react-native-password-eye';
 
+function getEventIDsArray(profileObject : any){
+    let eventsArray = profileObject.events;
+    let eventIDsArray = eventsArray.map((event : any) => event.id);
+    return eventIDsArray;
+}
+
 export default function Login() {
     const [username, setUsername] = useState<string | null>(null);
     const [password, setPassword] = useState<string | null>(null);
@@ -38,7 +44,14 @@ export default function Login() {
                 const response = await axios.get(`${apiRoute}/sr/volunteer/profile/`, { headers: { Authorization: `Bearer ${accessToken}` } })
                 console.log("Response is")
                 console.log(response.data)
-                await save('profile', JSON.stringify(response.data));
+                
+                let profileDataWithEventIDs = response.data;
+                let eventIDsArray = getEventIDsArray(profileDataWithEventIDs);
+                
+                profileDataWithEventIDs.events = eventIDsArray;
+
+                await save('profile', JSON.stringify(profileDataWithEventIDs));
+                //await save('profile', JSON.stringify(response.data));
             }
             catch (error) {
                 console.log(error);
